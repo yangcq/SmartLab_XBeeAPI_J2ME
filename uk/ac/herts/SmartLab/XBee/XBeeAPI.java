@@ -10,7 +10,6 @@ import uk.ac.herts.SmartLab.XBee.Response.*;
 import uk.ac.herts.SmartLab.XBee.Type.*;
 
 public class XBeeAPI {
-	private XBeeAPIResponseListener listeners;
 
 	private final byte KEY = 0x7E;
 	private final byte ESCAPED = 0x7D;
@@ -30,6 +29,7 @@ public class XBeeAPI {
 	private int waitFrameID;
 	private int waitFrameType;
 	private final int DEFAULT_WAIT = 10000;
+	private XBeeAPIResponseListener listener;
 
 	private boolean isRunning = false;
 	private boolean isChecksum = true;
@@ -47,12 +47,16 @@ public class XBeeAPI {
 	// / <summary>
 	// / get or set whether to verify receive packet's checksum
 	// / </summary>
-	public void setVerifyChecksum(boolean state) {
+	public void SetVerifyChecksum(boolean state) {
 		this.isChecksum = state;
 	}
 
-	public boolean getVerifyChecksum() {
+	public boolean GetVerifyChecksum() {
 		return this.isChecksum;
+	}
+
+	public void SetResponseListener(XBeeAPIResponseListener listener) {
+		this.listener = listener;
 	}
 
 	// / <summary>
@@ -80,21 +84,24 @@ public class XBeeAPI {
 	public void Send(APIFrame request) {
 
 		try {
-			request.CalculateChecksum();
+			synchronized (this.output) {
 
-			byte msb = (byte) (request.GetPosition() >> 8);
-			byte lsb = (byte) request.GetPosition();
+				request.CalculateChecksum();
 
-			_WriteByte(KEY);
+				byte msb = (byte) (request.GetPosition() >> 8);
+				byte lsb = (byte) request.GetPosition();
 
-			WriteByte(msb);
-			WriteByte(lsb);
+				_WriteByte(KEY);
 
-			for (int i = 0; i < request.GetPosition(); i++)
-				WriteByte(request.GetFrameData()[i]);
+				WriteByte(msb);
+				WriteByte(lsb);
 
-			WriteByte(request.GetCheckSum());
-			
+				for (int i = 0; i < request.GetPosition(); i++)
+					WriteByte(request.GetFrameData()[i]);
+
+				WriteByte(request.GetCheckSum());
+			}
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -372,7 +379,7 @@ public class XBeeAPI {
 
 	public ATCommandResponse SetPinFunction(Pin pin, int function) {
 		return SendATCommand(new ATCommand(pin.getCommand()), true,
-				new byte[] { (byte) function});
+				new byte[] { (byte) function });
 	}
 
 	public ATCommandResponse SetIODetection(Pin[] pins) {
@@ -399,8 +406,8 @@ public class XBeeAPI {
 	private void PacketProcess() {
 		if (isChecksum) {
 			if (!response.VerifyChecksum()) {
-				if (this.listeners != null)
-					listeners.onChecksumError(response);
+				if (this.listener != null)
+					this.listener.onChecksumError(response);
 				return;
 			}
 		}
@@ -419,65 +426,68 @@ public class XBeeAPI {
 			return;
 		}
 
-		if (this.listeners == null)
+		if (this.listener == null)
 			return;
 
 		switch (response.GetFrameType()) {
 		case API_IDENTIFIER.Rx64_Receive_Packet:
-			listeners.onXBeeRx64Indicator(new XBeeRx64Response(response));
+			this.listener.onXBeeRx64Indicator(new XBeeRx64Response(response));
 			break;
 		case API_IDENTIFIER.Rx16_Receive_Packet:
-			listeners.onXBeeRx16Indicator(new XBeeRx16Response(response));
+			this.listener.onXBeeRx16Indicator(new XBeeRx16Response(response));
 			break;
 		case API_IDENTIFIER.Rx64_IO_Data_Sample_Rx_Indicator:
-			listeners
+			this.listener
 					.onXBeeIODataSampleRx64Response(new XBeeRx64IOSampleResponse(
 							response));
 			break;
 		case API_IDENTIFIER.Rx16_IO_Data_Sample_Rx_Indicator:
-			listeners
+			this.listener
 					.onXBeeIODataSampleRx16Response(new XBeeRx16IOSampleResponse(
 							response));
 			break;
 		case API_IDENTIFIER.XBee_Transmit_Status:
-			listeners.onXBeeTransmitStatusResponse(new XBeeTxStatusResponse(
-					response));
+			this.listener
+					.onXBeeTransmitStatusResponse(new XBeeTxStatusResponse(
+							response));
 			break;
 		case API_IDENTIFIER.AT_Command_Response:
-			listeners.onATCommandResponse(new ATCommandResponse(response));
+			this.listener.onATCommandResponse(new ATCommandResponse(response));
 			break;
 		case API_IDENTIFIER.Modem_Status:
-			listeners.onModemStatusResponse(new ModemStatusResponse(response));
+			this.listener.onModemStatusResponse(new ModemStatusResponse(
+					response));
 			break;
 		case API_IDENTIFIER.ZigBee_Transmit_Status:
-			listeners
+			this.listener
 					.onZigBeeTransmitStatusResponse(new ZigBeeTxStatusResponse(
 							response));
 			break;
 		case API_IDENTIFIER.ZigBee_Receive_Packet:
-			listeners.onZigBeeReceivePacketResponse(new ZigBeeRxResponse(
+			this.listener.onZigBeeReceivePacketResponse(new ZigBeeRxResponse(
 					response));
 			break;
 		case API_IDENTIFIER.ZigBee_Explicit_Rx_Indicator:
-			listeners.onZigBeeExplicitRxResponse(new ZigBeeExplicitRxResponse(
-					response));
+			this.listener
+					.onZigBeeExplicitRxResponse(new ZigBeeExplicitRxResponse(
+							response));
 			break;
 		case API_IDENTIFIER.ZigBee_IO_Data_Sample_Rx_Indicator:
-			listeners
+			this.listener
 					.onZigBeeIODataSampleRXResponse(new ZigBeeIOSampleResponse(
 							response));
 			break;
 		case API_IDENTIFIER.XBee_Sensor_Read_Indicato:
-			listeners
-					.onXBeeSensorReadResponse(new SensorReadResponse(response));
+			this.listener.onXBeeSensorReadResponse(new SensorReadResponse(
+					response));
 			break;
 		case API_IDENTIFIER.Node_Identification_Indicator:
-			listeners
+			this.listener
 					.onNodeIdentificationResponse(new NodeIdentificationResponse(
 							response));
 			break;
 		case API_IDENTIFIER.Remote_Command_Response:
-			listeners.onRemoteCommandResponse(new RemoteCommandResponse(
+			this.listener.onRemoteCommandResponse(new RemoteCommandResponse(
 					response));
 			break;
 		case API_IDENTIFIER.Over_the_Air_Firmware_Update_Status:
@@ -487,13 +497,13 @@ public class XBeeAPI {
 		case API_IDENTIFIER.Many_to_One_Route_Request_Indicator:
 			break;
 		default:
-			listeners.onUndefinedPacket(response);
+			this.listener.onUndefinedPacket(response);
 			break;
 		}
 	}
 
 	private final Runnable readingThread = new Runnable() {
-		
+
 		public void run() {
 			while (isRunning) {
 				try {
@@ -551,7 +561,7 @@ public class XBeeAPI {
 		return value;
 	}
 
-	private void _WriteByte(byte data) throws IOException {
+	private void _WriteByte(int data) throws IOException {
 		output.write(data);
 	}
 
@@ -559,11 +569,11 @@ public class XBeeAPI {
 	// / write one byte to the payload, which allready handle the escape char
 	// / </summary>
 	// / <param name="data"></param>
-	private void WriteByte(byte data) throws IOException {
+	private void WriteByte(int data) throws IOException {
 		if (mode == APIMode.ESCAPED) {
 			if (data == KEY || data == ESCAPED || data == XON || data == XOFF) {
 				_WriteByte(ESCAPED);
-				_WriteByte((byte) (data ^ 0x20));
+				_WriteByte(data ^ 0x20);
 				return;
 			}
 		}

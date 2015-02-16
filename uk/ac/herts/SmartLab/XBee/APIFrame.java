@@ -16,7 +16,7 @@ public class APIFrame {
 	// / </summary>
 	private byte[] FrameData;
 
-	private byte CheckSum;
+	private int CheckSum;
 
 	// / <summary>
 	// / a state to indicate whether this packet's checksum is verified while
@@ -70,6 +70,7 @@ public class APIFrame {
 
 	public void Rewind() {
 		this.position = 0;
+		this.isVerify = false;
 	}
 
 	// / <summary>
@@ -148,11 +149,11 @@ public class APIFrame {
 		return this.FrameData;
 	}
 
-	public byte GetCheckSum() {
+	public int GetCheckSum() {
 		return CheckSum;
 	}
 
-	public void SetCheckSum(byte value) {
+	public void SetCheckSum(int value) {
 		this.CheckSum = value;
 	}
 
@@ -160,10 +161,10 @@ public class APIFrame {
 		if (isVerify)
 			return true;
 
-		byte temp = 0x00;
+		int temp = 0x00;
 		for (int i = 0; i < this.position; i++)
 			temp += this.FrameData[i];
-		if (temp + this.CheckSum == 0xFF)
+		if (((temp + this.CheckSum) & 0xFF) == 0xFF)
 			isVerify = true;
 		else
 			isVerify = false;
@@ -172,10 +173,13 @@ public class APIFrame {
 	}
 
 	public void CalculateChecksum() {
-		byte CS = 0x00;
+		if (isVerify)
+			return;
+
+		int CS = 0x00;
 		for (int i = 0; i < this.position; i++)
 			CS += this.FrameData[i];
-		this.CheckSum = (byte) (0xFF - CS);
+		this.CheckSum = (0xFF - CS) & 0xFF;
 		this.isVerify = true;
 	}
 
@@ -184,5 +188,7 @@ public class APIFrame {
 		this.FrameData = new byte[this.FrameData.length + EXPANDSIZE
 				* (1 + length / EXPANDSIZE)];
 		System.arraycopy(temp, 0, this.FrameData, 0, this.position);
+
+		this.Rewind();
 	}
 }
