@@ -4,8 +4,8 @@ import uk.ac.herts.SmartLab.XBee.APIFrame;
 import uk.ac.herts.SmartLab.XBee.IOSamples;
 import uk.ac.herts.SmartLab.XBee.Device.Address;
 
-public class XBeeIODataSampleRx16Response extends XBeeIODataSampleRxBase {
-	public XBeeIODataSampleRx16Response(APIFrame frame) {
+public class XBeeRx16IOSampleResponse extends RxIOSampleBase {
+	public XBeeRx16IOSampleResponse(APIFrame frame) {
 		super(frame);
 	}
 
@@ -13,32 +13,16 @@ public class XBeeIODataSampleRx16Response extends XBeeIODataSampleRxBase {
 		return GetFrameData()[3] * -1;
 	}
 
-	public int GetReceivedDataLength() {
-		return 0;
-	}
-
-	public byte GetReceivedData(int index) {
-		return 0;
-	}
-
 	public IOSamples GetIOSamples() {
-		return SamplesParse(this.GetFrameData(), 5);
+		return RxIOSampleBase.XBeeSamplesParse(this.GetFrameData(), 5);
 	}
 
 	public int GetReceiveStatus() {
-		return this.GetFrameData()[4];
+		return this.GetFrameData()[4] & 0xFF;
 	}
 
 	public Address GetRemoteDevice() {
 		return new Address(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 				0x00, 0x00, GetFrameData()[1], GetFrameData()[2] });
-	}
-
-	public byte[] GetReceivedData() {
-		return null;
-	}
-
-	public int GetReceivedDataOffset() {
-		return -1;
 	}
 }

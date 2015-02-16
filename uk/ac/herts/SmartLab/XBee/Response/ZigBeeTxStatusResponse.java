@@ -8,7 +8,7 @@ public class ZigBeeTxStatusResponse extends TxStatusBase {
 	}
 
 	public int GetDeliveryStatus() {
-		return this.GetFrameData()[5];
+		return this.GetFrameData()[5] & 0xFF;
 	}
 
 	public int GetDestinationAddress16() {
@@ -20,6 +20,6 @@ public class ZigBeeTxStatusResponse extends TxStatusBase {
 	}
 
 	public int GetDiscoveryStatus() {
-		return this.GetFrameData()[6];
+		return GetFrameData()[6] & 0xFF;
 	}
 }

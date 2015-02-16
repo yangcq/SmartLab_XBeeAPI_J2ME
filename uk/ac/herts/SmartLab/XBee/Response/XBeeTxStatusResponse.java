@@ -7,8 +7,7 @@ public class XBeeTxStatusResponse extends TxStatusBase {
 		super(frame);
 	}
 
-	
 	public int GetDeliveryStatus() {
-		return this.GetFrameData()[2];
+		return this.GetFrameData()[2] & 0xFF;
 	}
 }

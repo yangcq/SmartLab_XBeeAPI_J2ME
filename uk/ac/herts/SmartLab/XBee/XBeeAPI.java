@@ -431,12 +431,12 @@ public class XBeeAPI {
 			break;
 		case API_IDENTIFIER.Rx64_IO_Data_Sample_Rx_Indicator:
 			listeners
-					.onXBeeIODataSampleRx64Response(new XBeeIODataSampleRx64Response(
+					.onXBeeIODataSampleRx64Response(new XBeeRx64IOSampleResponse(
 							response));
 			break;
 		case API_IDENTIFIER.Rx16_IO_Data_Sample_Rx_Indicator:
 			listeners
-					.onXBeeIODataSampleRx16Response(new XBeeIODataSampleRx16Response(
+					.onXBeeIODataSampleRx16Response(new XBeeRx16IOSampleResponse(
 							response));
 			break;
 		case API_IDENTIFIER.XBee_Transmit_Status:
@@ -464,7 +464,7 @@ public class XBeeAPI {
 			break;
 		case API_IDENTIFIER.ZigBee_IO_Data_Sample_Rx_Indicator:
 			listeners
-					.onZigBeeIODataSampleRXResponse(new ZigBeeIODataSampleRxResponse(
+					.onZigBeeIODataSampleRXResponse(new ZigBeeIOSampleResponse(
 							response));
 			break;
 		case API_IDENTIFIER.XBee_Sensor_Read_Indicato:

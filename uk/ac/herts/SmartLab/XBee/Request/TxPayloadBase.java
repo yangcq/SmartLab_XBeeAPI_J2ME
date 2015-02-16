@@ -3,8 +3,8 @@ package uk.ac.herts.SmartLab.XBee.Request;
 import uk.ac.herts.SmartLab.XBee.Device.Address;
 import uk.ac.herts.SmartLab.XBee.Options.OptionsBase;
 
-public abstract class TxRequestBase extends RequestBase implements ITx {
-	public TxRequestBase(int length, int identifier, int frameID) {
+public abstract class TxPayloadBase extends TxBase {
+	public TxPayloadBase(int length, int identifier, int frameID) {
 		super(length, identifier, frameID);
 	}
 

@@ -14,7 +14,7 @@ public class ATCommandResponse extends CommandResponseBase {
 	}
 
 	public int GetCommandStatus() {
-		return this.GetFrameData()[4];
+		return this.GetFrameData()[4] & 0xFF;
 	}
 
 	// / <summary>
@@ -23,27 +23,25 @@ public class ATCommandResponse extends CommandResponseBase {
 	// / <returns></returns>
 
 	public byte[] GetParameter() {
-		int len = this.GetParameterLength();
-		if (len > 0) {
-			byte[] data = new byte[len];
-			System.arraycopy(this.GetFrameData(), 5, data, 0, len);
-			return data;
-		} else
+		int length = this.GetParameterLength();
+
+		if (length <= 0)
 			return null;
-	}
 
-	public int GetParameterOffset() {
-		// TODO Auto-generated method stub
-		return 5;
-	}
-
-	public int GetParameterLength() {
-		// TODO Auto-generated method stub
-		return this.GetPosition() - 5;
+		byte[] cache = new byte[length];
+		System.arraycopy(this.GetFrameData(), 5, cache, 0, length);
+		return cache;
 	}
 
 	public byte GetParameter(int index) {
-		// TODO Auto-generated method stub
 		return this.GetFrameData()[5 + index];
+	}
+
+	public int GetParameterLength() {
+		return this.GetPosition() - 5;
+	}
+
+	public int GetParameterOffset() {
+		return 5;
 	}
 }

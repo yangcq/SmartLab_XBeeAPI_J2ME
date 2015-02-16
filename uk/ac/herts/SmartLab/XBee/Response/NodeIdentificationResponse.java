@@ -3,7 +3,7 @@ package uk.ac.herts.SmartLab.XBee.Response;
 import uk.ac.herts.SmartLab.XBee.APIFrame;
 import uk.ac.herts.SmartLab.XBee.Device.Address;
 
-public class NodeIdentificationResponse extends ZigBeeRxBase {
+public class NodeIdentificationResponse extends RxBase {
 	private int offset = 0;
 
 	public NodeIdentificationResponse(APIFrame frame) {
@@ -11,48 +11,31 @@ public class NodeIdentificationResponse extends ZigBeeRxBase {
 		this.offset = this.GetPosition() - 8;
 	}
 
-	
-	public int GetReceivedDataLength() {
-		return -1;
-	}
-
-	
-	public byte GetReceivedData(int index) {
-		return 0;
-	}
-
-	
-	public int GetReceivedDataOffset() {
-		return -1;
-	}
-
-	
-	public byte[] GetReceivedData() {
-		return null;
-	}
-
-	
 	public int GetReceiveStatus() {
-		return this.GetFrameData()[11];
+		return this.GetFrameData()[11] & 0xFF;
 	}
 
-	
 	public Address GetRemoteDevice() {
-		byte[] data = new byte[10];
-		System.arraycopy(this.GetFrameData(), 14, data, 0, 8);
-		data[8] = this.GetFrameData()[12];
-		data[8] = this.GetFrameData()[13];
-		return new Address(data);
+		byte[] cache = new byte[10];
+		System.arraycopy(this.GetFrameData(), 14, cache, 0, 8);
+		cache[8] = this.GetFrameData()[12];
+		cache[9] = this.GetFrameData()[13];
+		return new Address(cache);
 	}
 
 	public Address GetSenderDevice() {
-		byte[] data = new byte[10];
-		System.arraycopy(this.GetFrameData(), 1, data, 0, 10);
-		return new Address(data);
+		byte[] cache = new byte[10];
+		System.arraycopy(this.GetFrameData(), 1, cache, 0, 10);
+		return new Address(cache);
 	}
 
 	public String GetNIString() {
-		return new String(this.GetFrameData(), 22, this.GetReceivedDataLength());
+		int length = this.GetPosition() - 31;
+
+		if (length <= 0)
+			return "";
+
+		return new String(this.GetFrameData(), 22, length);
 	}
 
 	public int GetParentNetworkAddress() {
@@ -61,11 +44,11 @@ public class NodeIdentificationResponse extends ZigBeeRxBase {
 	}
 
 	public int GetDeviceType() {
-		return this.GetFrameData()[offset + 2];
+		return this.GetFrameData()[offset + 2] & 0xFF;
 	}
 
 	public int GetSourceEvent() {
-		return this.GetFrameData()[offset + 3];
+		return this.GetFrameData()[offset + 3] & 0xFF;
 	}
 
 	public int GetDigiProfileID() {
