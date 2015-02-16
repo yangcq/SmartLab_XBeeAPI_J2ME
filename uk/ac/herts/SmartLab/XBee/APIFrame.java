@@ -36,7 +36,7 @@ public class APIFrame {
 	}
 
 	public int GetFrameType() {
-		return FrameData[0];
+		return FrameData[0] & 0xFF;
 	}
 
 	// / <summary>

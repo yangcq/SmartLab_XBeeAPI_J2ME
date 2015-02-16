@@ -116,7 +116,7 @@ public class XBeeAPI {
 	public XBeeTxStatusResponse SendXBeeTx16(Address remoteAddress,
 			OptionsBase option, byte[] payload, int offset, int length) {
 		waitFrameID++;
-		if (waitFrameID == 0)
+		if (waitFrameID > 255)
 			waitFrameID = 0x01;
 
 		waitFrameType = API_IDENTIFIER.XBee_Transmit_Status;
@@ -158,7 +158,7 @@ public class XBeeAPI {
 	public XBeeTxStatusResponse SendXBeeTx64(Address remoteAddress,
 			OptionsBase option, byte[] payload, int offset, int length) {
 		waitFrameID++;
-		if (waitFrameID == 0)
+		if (waitFrameID > 255)
 			waitFrameID = 0x01;
 
 		waitFrameType = API_IDENTIFIER.XBee_Transmit_Status;
@@ -203,7 +203,7 @@ public class XBeeAPI {
 	public ATCommandResponse SendATCommand(ATCommand command,
 			boolean applyChange, byte[] parameter, int offset, int length) {
 		waitFrameID++;
-		if (waitFrameID == 0)
+		if (waitFrameID > 255)
 			waitFrameID = 0x01;
 
 		waitFrameType = API_IDENTIFIER.AT_Command_Response;
@@ -253,7 +253,7 @@ public class XBeeAPI {
 			ATCommand command, OptionsBase transmitOptions, byte[] parameter,
 			int parameterOffset, int parameterLength) {
 		waitFrameID++;
-		if (waitFrameID == 0)
+		if (waitFrameID > 255)
 			waitFrameID = 0x01;
 
 		waitFrameType = API_IDENTIFIER.Remote_Command_Response;
@@ -298,7 +298,7 @@ public class XBeeAPI {
 	public ZigBeeTxStatusResponse SendZigBeeTx(Address remoteAddress,
 			OptionsBase option, byte[] payload, int offset, int length) {
 		waitFrameID++;
-		if (waitFrameID == 0)
+		if (waitFrameID > 255)
 			waitFrameID = 0x01;
 
 		waitFrameType = API_IDENTIFIER.ZigBee_Transmit_Status;
@@ -342,7 +342,7 @@ public class XBeeAPI {
 			ExplicitAddress remoteAddress, OptionsBase option, byte[] payload,
 			int offset, int length) {
 		waitFrameID++;
-		if (waitFrameID == 0)
+		if (waitFrameID > 255)
 			waitFrameID = 0x01;
 
 		waitFrameType = API_IDENTIFIER.ZigBee_Transmit_Status;
@@ -428,7 +428,7 @@ public class XBeeAPI {
 
 		if (this.listener == null)
 			return;
-
+		
 		switch (response.GetFrameType()) {
 		case API_IDENTIFIER.Rx64_Receive_Packet:
 			this.listener.onXBeeRx64Indicator(new XBeeRx64Response(response));
@@ -509,7 +509,7 @@ public class XBeeAPI {
 				try {
 					if (ReadByte() != KEY)
 						continue;
-
+					
 					int length = getLength();
 
 					response.Allocate(length);
@@ -536,7 +536,7 @@ public class XBeeAPI {
 		for (int i = 0; i < length; i++)
 			response.SetContent((byte) ReadByte());
 
-		response.SetCheckSum((byte) ReadByte());
+		response.SetCheckSum(ReadByte());
 	}
 
 	// / <summary>
