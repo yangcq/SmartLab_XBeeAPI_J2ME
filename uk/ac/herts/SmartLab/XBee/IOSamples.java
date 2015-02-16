@@ -34,7 +34,7 @@ public class IOSamples {
 	}
 
 	public Integer GetDigital(Pin pin) {
-		if (this.analog.containsKey(pin))
+		if (this.digital.containsKey(pin))
 			return (Integer) digital.get(pin);
 		return null;
 	}
