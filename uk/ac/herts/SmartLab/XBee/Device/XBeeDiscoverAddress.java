@@ -1,59 +1,57 @@
 ﻿package uk.ac.herts.SmartLab.XBee.Device;
 
-    public class XBeeDiscoverAddress extends Address
-    {
-        private int RSSI;
-        protected String NIString;
+import uk.ac.herts.SmartLab.XBee.Response.CommandResponseBase;
 
-        /// <summary>
-        /// not apply to ZigBee Discovery
-        /// </summary>
-        /// <returns></returns>
-        public int GetRSSI()
-        {
-            return RSSI;
-        }
+public class XBeeDiscoverAddress extends Address {
+	private int RSSI;
+	protected String NIString;
 
-        public String GetNIString()
-        {
-            return NIString;
-        }
+	// / <summary>
+	// / not apply to ZigBee Discovery
+	// / </summary>
+	// / <returns></returns>
+	public int GetRSSI() {
+		return RSSI;
+	}
 
-        /// <summary>
-        /// extension method for convert DN / ND (with or without NI String) response to address 
-        /// </summary>
-        /// <param name="response">muset be non null parameter</param>
-        /// <returns></returns>
-/*        public static new Address Parse(ICommandResponse response)
-        {
-            byte[] message = response.GetParameter();
-            if (message != null)
-                if (response.GetRequestCommand().ToString().ToUpper() == "ND")
-                {
-                    XBeeDiscoverAddress device = new XBeeDiscoverAddress();
+	public String GetNIString() {
+		return NIString;
+	}
 
-                    device.value[0] = message[2];
-                    device.value[1] = message[3];
-                    device.value[2] = message[4];
-                    device.value[3] = message[5];
-                    device.value[4] = message[6];
-                    device.value[5] = message[7];
-                    device.value[6] = message[8];
-                    device.value[7] = message[9];
+	// / <summary>
+	// / extension method for convert DN / ND (with or without NI String)
+	// response to address
+	// / </summary>
+	// / <param name="response">muset be non null parameter</param>
+	// / <returns></returns>
+	public static XBeeDiscoverAddress ParseXBee(CommandResponseBase response) {
+		if (response == null)
+			return null;
 
-                    device.value[8] = message[0];
-                    device.value[9] = message[1];
+		if (!response.GetRequestCommand().toString().equalsIgnoreCase("ND"))
+			return null;
 
-                    device.RSSI = message[10] * -1;
+		int length = response.GetParameterLength();
+		if (length <= 0)
+			return null;
 
-                    try
-                    {
-                        device.NIString = new string(UTF8Encoding.UTF8.GetChars(message.ExtractRangeFromArray(11, message.Length - 11)));
-                    }
-                    catch { device.NIString = "error while encoding"; }
+		XBeeDiscoverAddress device = new XBeeDiscoverAddress();
 
-                    return device;
-                }
-            return null;
-        }*/
-    }
+		System.arraycopy(response.GetFrameData(),
+				response.GetParameterOffset() + 2, device.value, 0, 8);
+		device.value[8] = response.GetParameter(0);
+		device.value[9] = response.GetParameter(1);
+
+		device.RSSI = response.GetParameter(10) * -1;
+
+		int nilength = length - 11;
+
+		if (nilength <= 0)
+			device.NIString = "";
+		else
+			device.NIString = new String(response.GetFrameData(),
+					response.GetParameterOffset() + 11, nilength);
+
+		return device;
+	}
+}

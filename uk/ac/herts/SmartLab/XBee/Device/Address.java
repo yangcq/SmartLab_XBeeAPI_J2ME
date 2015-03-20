@@ -1,5 +1,7 @@
 package uk.ac.herts.SmartLab.XBee.Device;
 
+import uk.ac.herts.SmartLab.XBee.Response.CommandResponseBase;
+
 public class Address {
 	public static final Address BROADCAST_ZIGBEE = new Address(0x00000000,
 			0x0000FFFF, 0xFFFE);
@@ -48,15 +50,17 @@ public class Address {
 	}
 
 	public int GetSerialNumberHigh() {
-		return (value[0] << 24) | (value[1] << 16) | (value[2] << 8) | value[3];
+		return (value[0] & 0xFF) << 24 | (value[1] & 0xFF) << 16
+				| (value[2] & 0xFF) << 8 | value[3] & 0xFF;
 	}
 
 	public int GetSerialNumberLow() {
-		return (value[4] << 24) | (value[5] << 16) | (value[6] << 8) | value[7];
+		return (value[4] & 0xFF) << 24 | (value[5] & 0xFF) << 16
+				| (value[6] & 0xFF) << 8 | value[7] & 0xFF;
 	}
 
 	public int GetNetworkAddress() {
-		return (value[8] << 8) | value[9];
+		return (value[8] & 0xFF) << 8 | value[9] & 0xFF;
 	}
 
 	public void SetSerialNumberHigh(int SerialNumberHigh) {
@@ -93,21 +97,26 @@ public class Address {
 	// / </summary>
 	// / <param name="response">muset be non null parameter</param>
 	// / <returns></returns>
-	/*
-	 * public static Address Parse(ICommandResponse response) { byte[] message =
-	 * response.GetParameter(); if (message != null) if
-	 * (response.GetRequestCommand().ToString().ToUpper() == "ND") { Address
-	 * device = new Address();
-	 * 
-	 * device.value[0] = message[2]; device.value[1] = message[3];
-	 * device.value[2] = message[4]; device.value[3] = message[5];
-	 * device.value[4] = message[6]; device.value[5] = message[7];
-	 * device.value[6] = message[8]; device.value[7] = message[9];
-	 * 
-	 * device.value[8] = message[0]; device.value[9] = message[1];
-	 * 
-	 * return device; } return null; }
-	 */
+	public static Address Parse(CommandResponseBase response) {
+		if (response == null)
+			return null;
+
+		if (!response.GetRequestCommand().toString().equalsIgnoreCase("ND"))
+			return null;
+
+		int length = response.GetParameterLength();
+		if (length <= 0)
+			return null;
+
+		Address device = new Address();
+
+		System.arraycopy(response.GetFrameData(),
+				response.GetParameterOffset() + 2, device.value, 0, 8);
+		device.value[8] = response.GetParameter(0);
+		device.value[9] = response.GetParameter(1);
+
+		return device;
+	}
 
 	public boolean equals(Object obj) {
 		if (obj == null)
